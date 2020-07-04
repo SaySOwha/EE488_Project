@@ -6,7 +6,7 @@ Deploy new replacement policy:
 
 	git clone https://github.com/rlawogks145/EE488_Project.git
 
-cd EE488_Project
+	cd EE488_Project
 
 	mv fb_rp.cc  fb_rp.hh  ReplacementPolicies.py  SConscript <Gem5 path>/src/mem/cache/replacement_policies
 
