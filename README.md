@@ -8,9 +8,9 @@ Deploy new replacement policy:
 
 	cd EE488_Project
 
-	mv fb_rp.cc  fb_rp.hh  ReplacementPolicies.py  SConscript <Gem5 path>/src/mem/cache/replacement_policies
+	mv lw_rp.cc  lw_rp.hh  ReplacementPolicies.py  SConscript <Gem5 path>/src/mem/cache/replacement_policies
 
 
-Then, rebuild gem5 and you can use the replacement policy like below, note the reference code two_level.py
+Then, rebuild gem5 and you can use the replacement policy like below, note the reference code test/two_level.py
 
-	root.system.l2cache.replacement_policy = FBRP()
+	root.system.l2cache.replacement_policy = LWRP()

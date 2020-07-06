@@ -1,81 +1,51 @@
-/**
- * Copyright (c) 2018 Inria
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met: redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer;
- * redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution;
- * neither the name of the copyright holders nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Daniel CarFBlho
- */
-
-#include "mem/cache/replacement_policies/fb_rp.hh"
+#include "mem/cache/replacement_policies/lw_rp.hh"
 
 #include <cassert>
 #include <memory>
 #include <vector>
 
-#include "params/FBRP.hh"
+#include "params/LWRP.hh"
 #include "debug/CacheRepl.hh"
 #include "mem/cache/cache_blk.hh"
 
-FBRP::FBRP(const Params *p)
+LWRP::LWRP(const Params *p)
     : BaseReplacementPolicy(p),
       Weight(nullptr)
 {
 }
 
 void
-FBRP::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
+LWRP::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 const
 {
-    std::shared_ptr<FBReplData> FB_replacement_data =
-            std::static_pointer_cast<FBReplData>(
+    std::shared_ptr<LWReplData> LW_replacement_data =
+            std::static_pointer_cast<LWReplData>(
                 replacement_data);
     // Reset last touch timestamp and frequency
-    FB_replacement_data->lastTouchTick = Tick(0);
-    FB_replacement_data->frequency = 0;
+    LW_replacement_data->lastTouchTick = Tick(0);
+    LW_replacement_data->frequency = 0;
 }
 
 void
-FBRP::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
+LWRP::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    std::shared_ptr<FBReplData> FB_replacement_data =
-            std::static_pointer_cast<FBReplData>(
+    std::shared_ptr<LWReplData> LW_replacement_data =
+            std::static_pointer_cast<LWReplData>(
                 replacement_data);
     // Update last touch timestamp and frequency
-    FB_replacement_data->lastTouchTick = curTick();
-    FB_replacement_data->frequency++;
+    LW_replacement_data->lastTouchTick = curTick();
+    LW_replacement_data->frequency++;
 }
 
 void
-FBRP::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
+LWRP::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
-    std::shared_ptr<FBReplData> FB_replacement_data =
-            std::static_pointer_cast<FBReplData>(
+    std::shared_ptr<LWReplData> LW_replacement_data =
+            std::static_pointer_cast<LWReplData>(
                 replacement_data);
     // Set last touch timestamp and frequency
-    FB_replacement_data->lastTouchTick = curTick();
-    FB_replacement_data->frequency = 1;
+    LW_replacement_data->lastTouchTick = curTick();
+    LW_replacement_data->frequency = 1;
 }
 
 bool comparefreq(WL_entry *w1, WL_entry *w2)
@@ -94,7 +64,7 @@ bool compareweight(WL_entry *w1, WL_entry *w2)
 }
 
 ReplaceableEntry*
-FBRP::getVictim(const ReplacementCandidates& candidates) const
+LWRP::getVictim(const ReplacementCandidates& candidates) const
 {
 
     // There must be at least one replacement candidate
@@ -124,8 +94,8 @@ FBRP::getVictim(const ReplacementCandidates& candidates) const
 
 
     for (const auto& candidate : candidates) {
-        std::shared_ptr<FBReplData> candidate_replacement_data =
-            std::static_pointer_cast<FBReplData>(
+        std::shared_ptr<LWReplData> candidate_replacement_data =
+            std::static_pointer_cast<LWReplData>(
                 candidate->replacementData);
 
         // If invalid entry, evict it
@@ -168,12 +138,6 @@ FBRP::getVictim(const ReplacementCandidates& candidates) const
 
     std::sort(WL.begin(), WL.end(), compareweight);
     
-
-    for (const auto& x : WL) {
-        DPRINTF(CacheRepl, "addr: 0x%x, tick: %d, freq: %d, score: %d, dirty: %d, set: %d, weight: %lf\n", std::static_pointer_cast<FBReplData>(
-                x->repl->replacementData)->addr, x->lastTouchTick, x->frequency, x->weight, static_cast<CacheBlk*>(x->repl)->isDirty(), x->repl->getSet(), weight);
-    }
-
     victim = WL.front()->repl;
 
     // prefer clean block
@@ -185,8 +149,6 @@ FBRP::getVictim(const ReplacementCandidates& candidates) const
             }
         }
     }
-    DPRINTF(CacheRepl, "Replacement victim: %s, addr: 0x%x\n\n", victim->print(), std::static_pointer_cast<FBReplData>(
-                victim->replacementData)->addr);
 
     WL.clear();
 
@@ -211,14 +173,14 @@ FBRP::getVictim(const ReplacementCandidates& candidates) const
 }
 
 std::shared_ptr<ReplacementData>
-FBRP::instantiateEntry()
+LWRP::instantiateEntry()
 {
     Weight = new std::map<uint32_t, double>;
-    return std::shared_ptr<ReplacementData>(new FBReplData());
+    return std::shared_ptr<ReplacementData>(new LWReplData());
 }
 
-FBRP*
-FBRPParams::create()
+LWRP*
+LWRPParams::create()
 {
-    return new FBRP(this);
+    return new LWRP(this);
 }

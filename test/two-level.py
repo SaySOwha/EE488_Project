@@ -4,7 +4,7 @@ from new_cache import *
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option('--fb', action="store_true")
+parser.add_option('--lw', action="store_true")
 parser.add_option('--random', action="store_true")
 parser.add_option('--lru', action="store_true")
 parser.add_option('--mru', action="store_true")
@@ -68,10 +68,10 @@ root.system.l2cache.response_latency = options.l2_resl
 root.system.l2cache.tag_latency = options.l2_hitl
 root.system.l2cache.data_latency = options.l2_hitl
 
-if options.fb:
-	root.system.cpu.icache.replacement_policy = FBRP()
-	root.system.cpu.dcache.replacement_policy = FBRP()
-	root.system.l2cache.replacement_policy = FBRP()
+if options.lw:
+	root.system.cpu.icache.replacement_policy = LWRP()
+	root.system.cpu.dcache.replacement_policy = LWRP()
+	root.system.l2cache.replacement_policy = LWRP()
 elif options.random:
 	root.system.cpu.icache.replacement_policy = RandomRP()
 	root.system.cpu.dcache.replacement_policy = RandomRP()
@@ -115,7 +115,7 @@ root.system.system_port = root.system.membus.slave
 # root.system.cpu.interrupt[0].int_master = root.system.membus.slave
 # root.system.cpu.interrupt[0].int_slave = root.system.membus.master
 
-root.system.cpu.max_insts_any_thread = 5w00000000
+root.system.cpu.max_insts_any_thread = 500000000
 
 process = Process()
 
